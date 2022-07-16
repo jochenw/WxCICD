@@ -8,4 +8,23 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
+  <dependencies>
+  	<dependency>
+  		<groupId>com.github.jochenw.afw</groupId>
+  		<artifactId>afw-di</artifactId>
+  		<version>0.6.0-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.github.jochenw.afw</groupId>
+  		<artifactId>afw-core</artifactId>
+  		<version>0.6.0-SNAPSHOT</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.junit.jupiter</groupId>
+  		<artifactId>junit-jupiter-engine</artifactId>
+  		<version>5.8.2</version>
+  		<type>pom.sha512</type>
+  		<scope>test</scope>
+  	</dependency>
+  </dependencies>
 </project>
