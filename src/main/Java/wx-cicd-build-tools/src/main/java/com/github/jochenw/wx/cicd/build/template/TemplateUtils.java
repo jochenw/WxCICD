@@ -82,6 +82,9 @@ public class TemplateUtils {
 				pListener.text(line);
 				break;
 			} else {
+				if (offset > 0) {
+					pListener.text(line.substring(0, offset));
+				}
 				int endOffset = line.indexOf(pEndToken);
 				if (endOffset == -1) {
 					pListener.error("End token " + pEndToken + " not found in variable reference: " + pLine);

@@ -1,0 +1,42 @@
+<project name="WxCICD" default="build">
+	<property file="project.properties"/>
+	<property file="project-defaults.properties"/>
+
+	<property name="build.dir" location="target"/>
+	<property name="lib.dir" location="${build.dir}/lib"/>
+	<property name="lib.ant.dir" location="${lib.dir}/ant"/>
+	<property name="lib.compile.dir" location="${lib.dir}/compile"/>
+	<property name="lib.test.dir" location="${lib.dir}/test"/>
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+	<target name="init">
+		<macrodef name="jar-download">
+			<attribute name="groupId"/>
+			<attribute name="artifactId"/>
+			<attribute name="version"/>
+			<attribute name="classifier" default=""/>
+			<attribute name="ext" default=".jar"/>
+			<attribute name="dest" default="${lib.compile.dir}"/>
+			<sequential>
+				<get src="${maven.repo.url}@{groupId}/@{artifactId}/@{version}/@{artifactId}-@{version}@{classifier}@{ext}"
+				     dest="@{dest}/@{artifactId}-@{version}@{classifier}@{ext}"
+					 skipexisting="true"/>
+			</sequential>
+		</macrodef>
+		<mkdir dir="${lib.ant.dir}"/>
+		<mkdir dir="${lib.compile.dir}"/>
+		<mkdir dir="${lib.test.dir}"/>
+		<jar-download groupId="org/apache/ant" artifactId="ant" version="1.10.12"/>
+		<jar-download groupId="org/apache/ant" artifactId="ant-launcher" version="1.10.12"/>
+		<jar-download groupId="javax/inject" artifactId="javax.inject" version="1"/>
+		<jar-download groupId="org/junit/jupiter" artifactId="junit-jupiter-api" version="5.8.2" dest="${lib.test.dir}"/>
+		<jar-download groupId="com/github/jochenw/afw" artifactId="afw-di" version="0.6"/>
+		<jar-download groupId="com/github/jochenw/afw" artifactId="afw-core" version="0.6"/>
+	</target>
+	<target name="build" depends="init">
+	</target>
+	<target name="dist" depends="clean,build"
+	        description="Clean the target directory, and run a complete build.">
+	</target>
+</project>

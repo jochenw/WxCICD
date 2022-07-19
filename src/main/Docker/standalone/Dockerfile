@@ -1,0 +1,1 @@
+FROM almalinux/8-base:8.6

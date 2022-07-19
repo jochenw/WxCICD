@@ -43,6 +43,9 @@ public class SimpleTemplateCompiler implements TemplateCompiler {
 			if (l.length() > 4  &&  l.startsWith("#if")  &&  Character.isWhitespace(l.charAt(3))) {
 				final String expression = l.substring(4);
 				i = parseIf(expression, pLines, i, pConsumer);
+			} else if (l.startsWith("#/")) {
+				// Ignore comment line.
+				++i;
 			} else if (l.startsWith("#end")) {
 				return i;
 			} else {
