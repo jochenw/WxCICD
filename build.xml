@@ -3,10 +3,19 @@
 	<property file="project-defaults.properties"/>
 
 	<property name="build.dir" location="target"/>
+	<property name="build.lib.dir" location="${build.dir}/lib"/>
 	<property name="lib.dir" location="${build.dir}/lib"/>
 	<property name="lib.ant.dir" location="${lib.dir}/ant"/>
 	<property name="lib.compile.dir" location="${lib.dir}/compile"/>
 	<property name="lib.test.dir" location="${lib.dir}/test"/>
+	<property name="src.jar.build-tools.dir" location="src/main/Java/wx-cicd-build-tools"/>
+
+	<uptodate property="jar.build-tools.uptodate" targetfile="${build.lib.dir}/wx-cicd-build-tools.jar">
+		<srcfiles dir="${src.jar.build-tools.dir}">
+			<include name="pom.xml"/>
+			<include name="src/**/"/>
+		</srcfiles>
+	</uptodate>
 	<target name="clean">
 		<delete dir="${build.dir}"/>
 	</target>
@@ -31,10 +40,61 @@
 		<jar-download groupId="org/apache/ant" artifactId="ant-launcher" version="1.10.12"/>
 		<jar-download groupId="javax/inject" artifactId="javax.inject" version="1"/>
 		<jar-download groupId="org/junit/jupiter" artifactId="junit-jupiter-api" version="5.8.2" dest="${lib.test.dir}"/>
+		<jar-download groupId="org/junit/jupiter" artifactId="junit-jupiter-engine" version="5.8.2" dest="${lib.test.dir}"/>
+		<jar-download groupId="org/junit/platform" artifactId="junit-platform-commons" version="1.8.2" dest="${lib.test.dir}"/>
+		<jar-download groupId="org/junit/platform" artifactId="junit-platform-engine" version="1.8.2" dest="${lib.test.dir}"/>
+		<jar-download groupId="org/junit/platform" artifactId="junit-platform-launcher" version="1.8.2" dest="${lib.test.dir}"/>
+		<jar-download groupId="org/opentest4j" artifactId="opentest4j" version="1.2.0" dest="${lib.test.dir}"/>
 		<jar-download groupId="com/github/jochenw/afw" artifactId="afw-di" version="0.6"/>
 		<jar-download groupId="com/github/jochenw/afw" artifactId="afw-core" version="0.6"/>
+		<path id="compile.class.path">
+			<fileset dir="${lib.compile.dir}" includes="*.jar"/>
+		</path>
+		<path id="test.class.path">
+			<fileset dir="${lib.test.dir}" includes="*.jar"/>
+			<path refid="compile.class.path"/>
+		</path>
 	</target>
-	<target name="build" depends="init">
+	<target name="build-tools" unless="jar.build-tools.uptodate" depends="init">
+		<property name="build.jar.build-tools.dir" location="${build.dir}/Java/wx-cicd-build-tools"/>
+		<mkdir dir="${build.jar.build-tools.dir}/classes"/>
+		<mkdir dir="${build.jar.build-tools.dir}/test-classes"/>
+		<javac classpathref="compile.class.path" debug="true" source="1.8" target="1.8" includeantruntime="false"
+			   includejavaruntime="false"
+		       destdir="${build.jar.build-tools.dir}/classes" srcdir="${src.jar.build-tools.dir}/src/main/java"/>
+		<mkdir dir="${src.jar.build-tools.dir}/src/main/resources"/> <!-- Git clone will possibly not create this -->
+		<copy todir="${build.jar.build-tools.dir}/classes">
+			<fileset dir="${src.jar.build-tools.dir}/src/main/resources"/>
+		</copy>
+		<path id="build-tools.test.class.path">
+			<pathelement location="${build.jar.build-tools.dir}/classes"/>
+			<path refid="test.class.path"/>
+	    </path>
+		<javac debug="true" source="1.8" target="1.8" includeantruntime="false"
+			   includejavaruntime="false" classpathref="build-tools.test.class.path"
+		       destdir="${build.jar.build-tools.dir}/test-classes" srcdir="${src.jar.build-tools.dir}/src/test/java"/>
+		<copy todir="${build.jar.build-tools.dir}/test-classes">
+			<fileset dir="${src.jar.build-tools.dir}/src/test/resources"/>
+		</copy>
+		<mkdir dir="${build.dir}/junit5"/>
+		<junitlauncher>
+			<classpath refid="build-tools.test.class.path"/>
+			<classpath>
+				<pathelement location="${build.jar.build-tools.dir}/test-classes"/>
+		    </classpath>
+			<testclasses outputdir="${build.dir}/junit5">
+				<fileset dir="${build.jar.build-tools.dir}/test-classes" includes="**/*Test.class"/>
+				<listener type="legacy-brief" sendSysOut="true"/>
+				<listener type="legacy-xml" sendSysErr="true" sendSysOut="true"/>
+			</testclasses>
+		</junitlauncher>
+		<mkdir dir="${build.lib.dir}"/>
+		<jar destfile="${build.lib.dir}/wx-cicd-build-tools.jar">
+			<fileset dir="${build.jar.build-tools.dir}/test-classes"/>
+		</jar>
+		
+	</target>
+	<target name="build" depends="init,build-tools">
 	</target>
 	<target name="dist" depends="clean,build"
 	        description="Clean the target directory, and run a complete build.">
