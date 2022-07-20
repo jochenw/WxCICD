@@ -4,6 +4,7 @@
 
 	<property name="build.dir" location="target"/>
 	<property name="build.lib.dir" location="${build.dir}/lib"/>
+	<property name="build.docker.dir" location="${build.dir}/docker"/>
 	<property name="lib.dir" location="${build.dir}/lib"/>
 	<property name="lib.ant.dir" location="${lib.dir}/ant"/>
 	<property name="lib.compile.dir" location="${lib.dir}/compile"/>
@@ -28,6 +29,11 @@
 			<attribute name="ext" default=".jar"/>
 			<attribute name="dest" default="${lib.compile.dir}"/>
 			<sequential>
+				<!-- First, copy the file from the local repository, if possible. -->
+				<copy file="${maven.local.repo}/@{groupId}/@{artifactId}/@{version}/@{artifactId}-@{version}@{classifier}@{ext}"
+				      tofile="@{dest}/@{artifactId}-@{version}@{classifier}@{ext}"
+				      failonerror="true" overwrite="false"/>
+				<!-- Next, if that didn't work, get the file from Maven central. -->
 				<get src="${maven.repo.url}@{groupId}/@{artifactId}/@{version}/@{artifactId}-@{version}@{classifier}@{ext}"
 				     dest="@{dest}/@{artifactId}-@{version}@{classifier}@{ext}"
 					 skipexisting="true"/>
@@ -47,6 +53,10 @@
 		<jar-download groupId="org/opentest4j" artifactId="opentest4j" version="1.2.0" dest="${lib.test.dir}"/>
 		<jar-download groupId="com/github/jochenw/afw" artifactId="afw-di" version="0.6"/>
 		<jar-download groupId="com/github/jochenw/afw" artifactId="afw-core" version="0.6"/>
+		<path id="ant.class.path">
+			<fileset dir="${lib.compile.dir}" includes="*.jar"/>
+			<pathelement location="${build.lib.dir}/wx-cicd-build-tools.jar"/>
+		</path>
 		<path id="compile.class.path">
 			<fileset dir="${lib.compile.dir}" includes="*.jar"/>
 		</path>
@@ -90,11 +100,22 @@
 		</junitlauncher>
 		<mkdir dir="${build.lib.dir}"/>
 		<jar destfile="${build.lib.dir}/wx-cicd-build-tools.jar">
-			<fileset dir="${build.jar.build-tools.dir}/test-classes"/>
+			<fileset dir="${build.jar.build-tools.dir}/classes"/>
 		</jar>
-		
 	</target>
-	<target name="build" depends="init,build-tools">
+	<target name="docker.directory">
+		<mkdir dir="${build.docker.dir}"/>
+		<taskdef name="templateprocessor" classpathref="ant.class.path"
+			     classname="com.github.jochenw.wx.cicd.build.ant.TemplateTask"/>
+		<templateprocessor outputDir="${build.docker.dir}">
+			<propertyFile>project-defaults.properties</propertyFile>
+			<propertyFile>project.properties</propertyFile>
+			<templateSet charset="UTF-8"
+			             dir="src/main/Docker/${container.type}">
+			</templateSet>
+		</templateprocessor>
+	</target>
+	<target name="build" depends="init,build-tools,docker.directory">
 	</target>
 	<target name="dist" depends="clean,build"
 	        description="Clean the target directory, and run a complete build.">
