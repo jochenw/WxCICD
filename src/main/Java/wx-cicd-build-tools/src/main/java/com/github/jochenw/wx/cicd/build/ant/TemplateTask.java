@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
@@ -237,7 +238,7 @@ public class TemplateTask extends Task {
 		final Function<Path,FileTime> timeProvider = (p) -> {
 			try {
 				return Files.getLastModifiedTime(p);
-			} catch (FileNotFoundException e) {
+			} catch (FileNotFoundException|NoSuchFileException e) {
 				return null;
 			} catch (IOException e) {
 				throw new BuildException("Unable to get file time for " + p + ": " + e.getMessage(), e);

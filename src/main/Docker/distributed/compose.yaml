@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  gitrepo:
+    build: gitrepo
+    ports:
+       - "3000"
+
