@@ -64,6 +64,7 @@ public class TemplateTask extends Task {
 	public static class TemplateSet extends FileSet {
 		private Charset charset;
 		private String prefix;
+		private String eol;
 
 		public Charset getCharset() {
 			if (charset == null) {
@@ -91,6 +92,23 @@ public class TemplateTask extends Task {
 		}
 		public void setPrefix(String pPrefix) {
 			prefix = pPrefix;
+		}
+
+		public String getEol() {
+			return eol;
+		}
+		public void setEol(String pEol) {
+			switch (pEol.toLowerCase()) {
+			case "crlf":
+				eol = "\r\n";
+				break;
+			case "lf":
+				eol = "\n";
+				break;
+			default:
+				eol = pEol;
+				break;
+			}
 		}
 	}
 
@@ -203,6 +221,7 @@ public class TemplateTask extends Task {
 		for (String templateFile : templateFiles) {
 			final Path sourceFile = baseDir.resolve(templateFile);
 			final SimpleTemplateCompiler stc = new SimpleTemplateCompiler(sourceFile.toString(), templateUtils, getStartToken(), getEndToken());
+			stc.setEol(pTemplateSet.getEol());
 			try {
 				final Path targetFile = targetDir.resolve(templateFile);
 				final boolean uptodate = isUptodate(pPropertyFileTimes, sourceFile, targetFile);

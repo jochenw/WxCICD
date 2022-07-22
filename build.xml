@@ -110,9 +110,11 @@
 		<templateprocessor outputDir="${build.docker.dir}">
 			<propertyFile>project-defaults.properties</propertyFile>
 			<propertyFile>project.properties</propertyFile>
-			<templateSet charset="UTF-8"
+			<templateSet charset="UTF-8" excludes="**/*.sh"
 			             dir="src/main/Docker/${container.type}">
 			</templateSet>
+			<templateset charset="UTF-8" includes="**/*.sh"
+			             dir="src/main/Docker/${container.type}"/>
 		</templateprocessor>
 	</target>
 	<target name="build" depends="init,build-tools,docker.directory">

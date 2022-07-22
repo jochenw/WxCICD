@@ -3,5 +3,11 @@ services:
   gitrepo:
     build: gitrepo
     ports:
-       - "3000"
+       - "#{gitea.host.port}:3000"
 
+  builder:
+    build: builder
+    ports:
+       - "#{builder.host.port}:5555"
+       - "#{builder.host.diagnostics.port}:9999"
+       - "#{builder.host.um.port}:9001"

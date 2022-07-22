@@ -1,6 +1,5 @@
 package com.github.jochenw.wx.cicd.build.template;
 
-import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Properties;
 
@@ -12,10 +11,5 @@ public interface Template {
 			return props::getProperty;
 		}
 	}
-	public void write(Model pModel, PrintWriter pWriter);
-	public default void write(Model pModel, Writer pWriter) {
-		final PrintWriter pw = new PrintWriter(pWriter);
-		write(pModel, pw);
-		pw.flush();
-	}
+	public void write(Model pModel, Writer pWriter);
 }

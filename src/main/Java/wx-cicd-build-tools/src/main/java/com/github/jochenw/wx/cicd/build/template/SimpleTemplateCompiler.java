@@ -1,11 +1,14 @@
 package com.github.jochenw.wx.cicd.build.template;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.github.jochenw.afw.core.util.Objects;
 import com.github.jochenw.afw.di.api.Module;
 import com.github.jochenw.afw.di.api.Scopes;
 
@@ -14,6 +17,7 @@ public class SimpleTemplateCompiler implements TemplateCompiler {
 	private final String startToken, endToken;
 	private final String uri;
 	private final TemplateUtils templateUtils;
+	private String lineTerminator = System.lineSeparator();
 
 	public SimpleTemplateCompiler(String pUri, TemplateUtils pTemplateUtils, String pStartToken, String pEndToken) {
 		uri = pUri;
@@ -28,7 +32,7 @@ public class SimpleTemplateCompiler implements TemplateCompiler {
 		parse(pLines, 0, templates::add, () ->{});
 		return new Template() {
 			@Override
-			public void write(Model pModel, PrintWriter pWriter) {
+			public void write(Model pModel, Writer pWriter) {
 				templates.forEach((t) -> {
 					t.write(pModel, pWriter);
 				});
@@ -65,7 +69,7 @@ public class SimpleTemplateCompiler implements TemplateCompiler {
 		});
 		pConsumer.accept(new Template() {
 			@Override
-			public void write(Model pModel, PrintWriter pWriter) {
+			public void write(Model pModel, Writer pWriter) {
 				if (tf.test(pModel)) {
 					templates.forEach((t) -> t.write(pModel, pWriter));
 				}
@@ -106,7 +110,11 @@ public class SimpleTemplateCompiler implements TemplateCompiler {
 		pTemplateConsumer.accept((model,lw) -> {
 			final StringBuilder sb = new StringBuilder();
 			consumers.forEach((c) -> c.accept(model,sb));
-			lw.println(sb.toString());
+			try {
+				lw.write(sb.toString() + lineTerminator);
+			} catch (IOException e) {
+				throw new UndeclaredThrowableException(e);
+			}
 		});
 	}
 
@@ -114,4 +122,11 @@ public class SimpleTemplateCompiler implements TemplateCompiler {
 		b.bind(TemplateUtils.class).in(Scopes.SINGLETON);
 		b.bind(ParameterFunction.class, "isTrue").toInstance(TemplateFunction.IS_TRUE);
 	};
+
+	public void setEol(String pLineTerminator) {
+		lineTerminator = Objects.notNull(pLineTerminator, System.lineSeparator());
+	}
+	public String getLineTerminator() {
+		return lineTerminator;
+	}
 }
